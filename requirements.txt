@@ -1,0 +1,4 @@
+selenium
+fake_useragent
+requests
+bs4
