@@ -118,7 +118,6 @@ class query():
                 ttl += 1
                 sleep(random()*10)
                 response = requests.get(targetUri,headers=headers,params=self.params(start),timeout=10000)
-                print(response.status_code)
             tastySoup = BeautifulSoup(response.text, "html.parser")
             jobBlock = dict()
             for li in tastySoup.find_all('li'):
