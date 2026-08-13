@@ -3,3 +3,4 @@ fake_useragent
 requests
 bs4
 python-dotenv
+pyyaml-6.0.3

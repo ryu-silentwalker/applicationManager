@@ -1,2 +1,5 @@
 .env
 cookies
+cookies.json
+jobDump.json
+instructionSheets/answers.yaml
