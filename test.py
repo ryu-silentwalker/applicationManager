@@ -9,10 +9,10 @@ queryObj = {
         "keyword": "cyber, NetDevOps, DevSecOps, network, it",
         "location": "USA",
         "dateSincePosted": "24hr",
-        "salary": 90000,
+        "salary": 0,
         "jobType": "full-time",
         "remoteFilter": "remote",
-        "experienceLevel": "entry level",
+        "experienceLevel": "",
         "sortBy":"recent",
         "limit":1000,
         "page":0,
@@ -32,6 +32,3 @@ obj = {  "4448583771": {
 jobBlob= lib.linkedInApiManager.query(queryObj).getJobBatch()
 with open('jobDump.json','w',encoding='utf-8') as jobDumpFile:
     json.dump(jobBlob,jobDumpFile,indent=2)
-
-bot = lib.applicationBot.linkedInBot("./resume/Ryu_Silentwalker_Resume.docx",jobBlob)
-bot.autoApply()

@@ -29,6 +29,8 @@ class query():
             "past week": "r604800",
             "24hr": "r86400",
         }
+        if self.dateSincePosted == None or self.dateSincePosted == "":
+            return ""
         return dateRange[self.dateSincePosted.lower()]
     def getExperienceLevel(self):
         experienceRange = {
@@ -39,6 +41,8 @@ class query():
             "director": "5",
             "executive": "6",
         }
+        if self.experienceLevel == None or self.experienceLevel == "":
+                    return ""
         return experienceRange[self.experienceLevel.lower()]
     def getJobType(self):
         jobTypeRange = {
@@ -51,6 +55,8 @@ class query():
             "volunteer": "V",
             "internship": "I",
         }
+        if self.jobType == None or self.jobType == "":
+                    return ""
         return jobTypeRange[self.jobType.lower()]
     def getRemoteFilter(self):
         remoteFilterRange = {
@@ -62,7 +68,7 @@ class query():
         return remoteFilterRange[self.remoteFilter.lower()]
     def getSalary(self):
         match self.salary:
-            case x if x < 60000:
+            case x if 0 < x < 60000:
                 return 1
             case x if 60000 <= x < 80000:
                 return 2
@@ -72,13 +78,19 @@ class query():
                 return 4
             case x if 120000 < x:
                 return 5
+            case _:
+                return ""
+                  
     def getSort(self):
         sortRange = {
             "recent": "DD",
             "relevant": "R"
         }
+        if self.sortBy == None or self.sortBy == "":
+                    return ""
         return sortRange[self.sortBy.lower()]
     def params(self,start):
+        paramsFiltered = dict()
         params = {
             "keywords": str(self.keyword),
             "location": str(self.location),
@@ -92,7 +104,10 @@ class query():
             "start": str(start),
             "sortBy": str(self.getSort())
         }
-        return params
+        for param in params:
+             if params[param] != None and params[param] != "":
+                  paramsFiltered[param] = params[param]
+        return paramsFiltered
     def getJobBlock(self,start):
         targetUri = f'https://{self.host}/jobs-guest/jobs/api/seeMoreJobPostings/search?'
         headers = {
