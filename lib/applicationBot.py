@@ -591,6 +591,7 @@ class linkedInBot:
                 time.sleep(4)
 
         except Exception as e:
+
             print(f"Application step completed or stopped: {e}")
 
     def close(self):
@@ -608,8 +609,6 @@ class linkedInBot:
             for job_id, job_url in self.jobBlob.items():
                 print(f"\n--- Attempting to apply for Job ID: {job_id} ---")
                 try:
-                    # Assuming jobBlob is a dict like {'job1': {'link': 'url'}, ...}
-                    # If it's just a flat dict {'job1': 'url'}, you'll need to adjust gotoJob
                     self.gotoJob({'link': job_url} if isinstance(job_url, str) else job_url)
                     self.apply()
                 except Exception as e:

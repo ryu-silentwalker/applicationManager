@@ -32,3 +32,6 @@ obj = {  "4448583771": {
 jobBlob= lib.linkedInApiManager.query(queryObj).getJobBatch()
 with open('jobDump.json','w',encoding='utf-8') as jobDumpFile:
     json.dump(jobBlob,jobDumpFile,indent=2)
+processedBlob = lib.linkedInApiManager.bypassBotDetect(jobBlob).processBlob()
+bot = lib.applicationBot.linkedInBot("",processedBlob)
+bot.autoApply()

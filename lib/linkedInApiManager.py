@@ -1,11 +1,110 @@
 import re
-import json
-import asyncio
+import time
 import requests
-from time import sleep
+import urllib.parse
+from json import load
 from random import random
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
+from selenium import webdriver 
+from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.support.ui import WebDriverWait, Select
+from selenium.webdriver.support import expected_conditions as EC
+
+class bypassBotDetect:
+    def __init__(self,jobBlobUnfiltered):
+        options=Options()
+        options.add_argument("--headless=new")
+        self.driver = webdriver.Firefox(options=options)
+        self.jobBlobUnfiltered = jobBlobUnfiltered
+
+    def close(self):
+        """Cleans up the WebDriver session."""
+        print("Job application loop complete. Closing browser...")
+        try:
+            self.driver.quit()
+        except Exception as e:
+            print(f"Error closing browser: {e}")
+    def login(self):
+        self.driver.get("https://www.linkedin.com/login")
+        time.sleep(2)
+
+        # 1. Inject Cookies
+        try:
+            with open("cookies.json", "r", encoding="utf-8") as cookyFile:
+                cookies = load(cookyFile)
+                for cookie in cookies:
+                    self.driver.add_cookie({"name": cookie["name"], "value": cookie["value"]})
+
+            # Refresh to apply cookies
+            self.driver.refresh()
+            time.sleep(3)
+        except Exception as e:
+            print(f"Cookie injection skipped: {e}")
+
+        # 2. Check if cookies successfully logged us in (Redirected to feed)
+        if "feed" in self.driver.current_url:
+            print("Successfully logged in via cookies!")
+            return
+
+        # 3. Wait for LinkedIn's actual username/email selector
+        try:
+            emailBox = WebDriverWait(self.driver, 10).until(
+                EC.element_to_be_clickable((By.ID, "username"))
+            )
+            passwdBox = self.driver.find_element(By.ID, "password")
+
+            emailBox.clear()
+            emailBox.send_keys(self.user)
+            passwdBox.clear()
+            passwdBox.send_keys(self.passwd)
+
+            # LinkedIn submit button
+            loginBtn = self.driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
+            loginBtn.click()
+
+        except Exception:
+            # If it times out, check if LinkedIn triggered a CAPTCHA/Verification checkpoint
+            if "checkpoint" in self.driver.current_url:
+                print("LinkedIn triggered a Security Checkpoint / CAPTCHA verification.")
+            else:
+                print("Failed to locate login fields.")
+    def getLinkByRegex(self,pattern):
+        regexPattern = re.compile(rf'{pattern}')
+        for link in self.driver.find_elements(By.TAG_NAME, "a"):
+            href = link.get_attribute("href")
+            if href and regexPattern.search(href):
+                return link
+    def getReversedLink(self):
+            tty = 0
+            try:
+                while tty < 10:
+                    try:
+                        raw_href = self.getLinkByRegex('/safety/go').get_attribute("href")
+                        post_url = urllib.parse.unquote(str(raw_href)[40:])
+                        if post_url != None: return post_url
+                    except:
+                        time.sleep(3)
+                        tty += 1
+            except Exception:
+                return None
+    def processBlob(self):
+        filteredBlob = dict()
+        self.login()
+        for el in self.jobBlobUnfiltered:
+            self.driver.get(self.jobBlobUnfiltered[el]['link'])
+            postProcessUrl = self.getReversedLink()
+            postProcessEl = self.jobBlobUnfiltered[el].copy()
+            postProcessEl.pop("link")
+            postProcessEl['link'] = postProcessUrl
+            filteredBlob[el] = postProcessEl.copy()
+            print(f'{el} processed....')
+        return filteredBlob
+
+
+
+
 
 class query():
     def __init__(self,queryObj):
@@ -131,7 +230,7 @@ class query():
                 if ttl >= 10:
                     return RuntimeError
                 ttl += 1
-                sleep(random()*10)
+                time.sleep(random()*10)
                 response = requests.get(targetUri,headers=headers,params=self.params(start),timeout=10000)
             tastySoup = BeautifulSoup(response.text, "html.parser")
             jobBlock = dict()
@@ -150,6 +249,8 @@ class query():
             return jobBlock
         except Exception as e:
             pass
+
+        
     def getJobBatch(self):
         block = 10
         jobBatch = dict()
